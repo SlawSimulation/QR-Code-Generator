@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Offline QR Code Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 500px; margin: auto; }
+    input, button { font-size: 1rem; padding: .6rem .8rem; }
+    #qrcode { margin-top: 1rem; }
+    canvas { border: 1px solid #ccc; }
+    .row { display: flex; gap: .5rem; margin-bottom: .5rem; }
+    .row > input { flex: 1; }
+    #download { margin-top: 1rem; display: none; }
+  </style>
+</head>
+<body>
+  <h1>Offline QR Code Generator</h1>
+
+  <div class="row">
+    <input id="text" type="text" value="https://start.gg/tournament/example" placeholder="Enter any link..." />
+    <button id="make">Generate</button>
+  </div>
+
+  <div id="qrcode"></div>
+  <button id="download">Download QR</button>
+
+  <!-- QRCodeJS library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    const input = document.getElementById('text');
+    const btn   = document.getElementById('make');
+    const qrDiv = document.getElementById('qrcode');
+    const dlBtn = document.getElementById('download');
+    const qr    = new QRCode(qrDiv, { width: 200, height: 200 });
+
+    function updateQR() {
+      const val = input.value.trim() || 'https://start.gg/tournament/example';
+      qr.clear();
+      qr.makeCode(val);
+
+      dlBtn.style.display = 'inline-block';
+    }
+
+    btn.addEventListener('click', updateQR);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') updateQR(); });
+
+    dlBtn.addEventListener('click', () => {
+      const canvas = qrDiv.querySelector('canvas');
+      if (!canvas) return;
+
+      // make filename safe
+      let filename = input.value.trim()
+        .replace(/^https?:\/\//, '')  // remove http(s)
+        .replace(/[^\w\-]+/g, '-')    // replace non-filename chars
+        .replace(/-+/g, '-')          // cleanup dashes
+        .replace(/^-|-$/g, '');       // trim dashes
+
+      if (!filename) filename = 'qrcode';
+      filename += '.png';
+
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // generate default on load
+    updateQR();
+  </script>
+</body>
+</html>
